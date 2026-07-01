@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra Cứu Thông Tin Nhà Cung Cấp</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-glow: #3b82f6;
+            --accent-glow: #8b5cf6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .navbar {
+            background-color: rgba(15, 23, 42, 0.8) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 60px auto 30px;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .search-box {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .search-input {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: none;
+            color: #fff !important;
+            padding: 18px 20px 18px 50px;
+            font-size: 1.1rem;
+            width: 100%;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, var(--primary-glow), var(--accent-glow));
+            border: none;
+            color: white;
+            padding: 0 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-search:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .result-card {
+            margin-top: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .badge-custom {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, var(--text-secondary), #475569);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center fw-bold" href="#">
+                <i class="bi bi-shield-check text-primary me-2 fs-3"></i>
+                <span>KOL VENDOR PORTAL</span>
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <button id="adminInviteBtn" class="btn btn-outline-info btn-sm rounded-pill px-3 d-none" data-bs-toggle="modal" data-bs-target="#adminInviteModal">
+                    <i class="bi bi-person-plus me-1"></i> Invite +
+                </button>
+                <span class="text-secondary small d-none d-sm-inline" id="userEmailDisplay"></span>
+                <a href="/api/auth/logout" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                    <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Section -->
+    <div class="container">
+        <div class="search-container">
+            <div class="text-center mb-5">
+                <h1 class="fw-bold mb-2">Tra Cứu Thông Tin Nhà Cung Cấp</h1>
+                <p class="text-secondary">Nhập Tên nhà cung cấp, Số CCCD hoặc Mã số thuế để xem chi tiết hồ sơ đăng ký.</p>
+            </div>
+
+            <!-- Search Form -->
+            <form id="searchForm" class="glass-card p-2">
+                <div class="input-group search-box">
+                    <span class="search-icon"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control search-input" placeholder="Nhập tên, số CCCD hoặc mã số thuế..." required autocomplete="off">
+                    <button type="submit" class="btn btn-search">Tìm kiếm</button>
+                </div>
+            </form>
+
+            <!-- Loading Spinner -->
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="text-secondary mt-3">Đang tìm kiếm thông tin trên hệ thống...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state glass-card mt-4" id="emptyState">
+            <i class="bi bi-folder2-open d-block"></i>
+                <h4 class="fw-semibold">Không tìm thấy thông tin</h4>
+                <p class="text-secondary">Vui lòng kiểm tra lại từ khóa tìm kiếm hoặc thử với thông tin khác.</p>
+            </div>
+
+            <!-- Results Container -->
+            <div id="resultsContainer"></div>
+
+            <!-- Admin Panel Modal (hidden by default, triggered by navbar button) -->
+            <div class="modal fade" id="adminInviteModal" tabindex="-1" aria-labelledby="adminInviteModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content glass-card border border-secondary border-opacity-25" style="background-color: #1e293b;">
+                        <div class="modal-header border-bottom border-secondary border-opacity-25">
+                            <h5 class="modal-title fw-bold text-info" id="adminInviteModalLabel">
+                                <i class="bi bi-people me-2"></i>Quản Lý Lời Mời (Admin Only)
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form id="inviteForm" class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <input type="email" id="inviteEmail" class="form-control form-control-custom bg-dark text-white border-secondary" style="background: rgba(15, 23, 42, 0.6) !important; border: 1px solid var(--border-color) !important; color: #fff !important;" placeholder="Nhập email Google của người muốn mời..." required>
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="inviteRole" class="form-select form-control-custom bg-dark text-white border-secondary" style="background: rgba(15, 23, 42, 0.6) !important; border: 1px solid var(--border-color) !important; color: #fff !important; cursor: pointer;">
+                                        <option value="user" selected>Nhân viên (User)</option>
+                                        <option value="admin">Quản trị (Admin)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-primary w-100 h-100 rounded-3">Gửi Lời Mời</button>
+                                </div>
+                            </form>
+                            
+                            <h5 class="fw-semibold text-secondary mb-3">Danh Sách Đã Mời</h5>
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover table-borderless align-middle m-0" style="background: transparent;">
+                                    <thead>
+                                        <tr class="text-secondary border-bottom border-secondary">
+                                            <th>Email</th>
+                                            <th>Người mời</th>
+                                            <th>Quyền hạn</th>
+                                            <th>Ngày mời</th>
+                                            <th class="text-end">Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inviteList">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-3">Chưa có ai được mời.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (window.location.protocol === 'file:') {
+                alert('Lỗi: Bạn đang mở file HTML trực tiếp từ ổ đĩa (file://). Vui lòng truy cập qua đường dẫn máy chủ để tìm kiếm, ví dụ: http://127.0.0.1:8000/public/search.html hoặc link LocalTunnel của bạn.');
+                return;
+            }
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const emptyState = document.getElementById('emptyState');
+            const resultsContainer = document.getElementById('resultsContainer');
+
+            // Reset UI
+            resultsContainer.innerHTML = '';
+            emptyState.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+
+            try {
+                // Fetch to FastAPI endpoint
+                const response = await fetch(`../api/search-vendor?query=${encodeURIComponent(query)}`);
+                if (!response.ok) {
+                    throw new Error('Lỗi truy vấn dữ liệu từ máy chủ.');
+                }
+                const data = await response.json();
+                
+                loadingSpinner.style.display = 'none';
+
+                if (data.success && data.results && data.results.length > 0) {
+                    displayResults(data.results);
+                } else {
+                    emptyState.style.display = 'block';
+                }
+            } catch (error) {
+                loadingSpinner.style.display = 'none';
+                alert('Có lỗi xảy ra: ' + error.message);
+            }
+        });
+
+        function displayResults(results) {
+            const container = document.getElementById('resultsContainer');
+            
+            results.forEach((vendor, index) => {
+                const card = document.createElement('div');
+                card.className = 'card result-card glass-card p-4 mb-4 animate-fade-in';
+                card.style.animationDelay = `${index * 0.1}s`;
+
+                // Generate fields HTML dynamically preserving exact names and order
+                let fieldsHtml = '';
+                if (vendor.all_fields && Array.isArray(vendor.all_fields)) {
+                    vendor.all_fields.forEach(field => {
+                        let displayValue = field.value || '<span class="text-muted">-</span>';
+                        // Check if value is a URL (e.g. Drive file links for CCCD/Passport images/GPKD/Profile link)
+                        if (field.value && typeof field.value === 'string' && (field.value.startsWith('http://') || field.value.startsWith('https://'))) {
+                            displayValue = `<a href="${field.value}" target="_blank" class="text-info text-decoration-none d-inline-flex align-items-center"><i class="bi bi-box-arrow-up-right me-1"></i> Xem chi tiết</a>`;
+                        }
+                        fieldsHtml += `
+                            <div class="col-md-4 col-sm-6 mb-3">
+                                <div class="info-label text-truncate" title="${field.label}">${field.label}</div>
+                                <div class="info-value text-light text-break">${displayValue}</div>
+                            </div>
+                        `;
+                    });
+                }
+
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start border-bottom border-secondary pb-3 mb-4 flex-wrap gap-2">
+                        <div>
+                            <span class="badge-custom mb-2 d-inline-block">${vendor.vendor_group || 'Chưa phân nhóm'}</span>
+                            <h3 class="fw-bold m-0 text-white">${vendor.vendor_name}</h3>
+                            <p class="text-secondary m-0 mt-1"><i class="bi bi-hash me-1"></i>Mã NCC: <strong class="text-light">${vendor.vendor_code || 'N/A'}</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        ${fieldsHtml}
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        let currentUser = null;
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const data = await response.json();
+                if (!data.logged_in) {
+                    window.location.href = '/public/login.html';
+                    return;
+                }
+                currentUser = data;
+                document.getElementById('userEmailDisplay').textContent = currentUser.email;
+                
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminInviteBtn').classList.remove('d-none');
+                    loadInvitations();
+                }
+            } catch (err) {
+                console.error('Lỗi check auth:', err);
+            }
+        }
+
+        async function loadInvitations() {
+            try {
+                const response = await fetch('/api/admin/invitations');
+                const data = await response.json();
+                const inviteList = document.getElementById('inviteList');
+                if (data.success && data.invitations && data.invitations.length > 0) {
+                    inviteList.innerHTML = data.invitations.map(inv => {
+                        const isSuperAdmin = inv.email.toLowerCase() === 'quang.do@lavadigital.net';
+                        const roleSelect = isSuperAdmin ? 
+                            `<span class="badge bg-danger">Super Admin</span>` : 
+                            `<select class="form-select form-select-sm bg-dark text-white border-secondary py-0" style="width: auto; font-size: 0.85rem;" onchange="changeUserRole(${inv.id}, this.value, '${inv.email}')">
+                                <option value="user" ${inv.role === 'user' ? 'selected' : ''}>User</option>
+                                <option value="admin" ${inv.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>`;
+                        
+                        return `
+                             <tr class="border-bottom border-secondary border-opacity-25 text-light">
+                                 <td>${inv.email}</td>
+                                 <td>${inv.invited_by}</td>
+                                 <td>${roleSelect}</td>
+                                 <td class="text-secondary">${inv.invited_at}</td>
+                                 <td class="text-end">
+                                     ${isSuperAdmin ? '' : `
+                                     <button class="btn btn-outline-danger btn-sm border-0 py-0 px-2" onclick="deleteInvitation(${inv.id}, '${inv.email}')" title="Thu hồi quyền truy cập">
+                                         <i class="bi bi-trash3-fill"></i>
+                                     </button>
+                                     `}
+                                 </td>
+                             </tr>
+                        `;
+                    }).join('');
+                } else {
+                    inviteList.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Chưa có ai được mời.</td></tr>';
+                }
+            } catch (err) {
+                console.error('Lỗi load danh sách lời mời:', err);
+            }
+        }
+
+        async function changeUserRole(id, newRole, email) {
+            try {
+                const response = await fetch(`/api/admin/invite/${id}/role`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: newRole })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(`Đã cập nhật quyền của "${email}" thành ${newRole.toUpperCase()}!`);
+                    loadInvitations();
+                } else {
+                    alert(data.detail || 'Không thể cập nhật quyền hạn.');
+                    loadInvitations(); // Reload to revert selected value
+                }
+            } catch (err) {
+                alert('Lỗi kết nối server.');
+                loadInvitations();
+            }
+        }
+
+        async function deleteInvitation(id, email) {
+            if (!confirm(`Bạn có chắc chắn muốn thu hồi quyền truy cập của email "${email}" không?`)) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/admin/invite/${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    loadInvitations();
+                } else {
+                    alert(data.detail || 'Không thể xóa lời mời.');
+                }
+            } catch (err) {
+                alert('Lỗi kết nối server.');
+            }
+        }
+
+        // Handle invite form submit
+        document.getElementById('inviteForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('inviteEmail');
+            const roleSelect = document.getElementById('inviteRole');
+            const email = emailInput.value.trim();
+            const role = roleSelect.value;
+            if (!email) return;
+
+            try {
+                const response = await fetch('/api/admin/invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, role })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Đã gửi lời mời và email thành công!');
+                    emailInput.value = '';
+                    loadInvitations();
+                } else {
+                    alert(data.detail || 'Có lỗi xảy ra khi gửi lời mời.');
+                }
+            } catch (err) {
+                alert('Lỗi kết nối server.');
+            }
+        });
+
+        // Initialize auth check
+        checkAuth();
+    </script>
+</body>
+</html>

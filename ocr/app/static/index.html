@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đọc thông tin CCCD</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+
+<body>
+  <main class="app">
+    <section class="upload-panel">
+      <div>
+        <h1>Đọc thông tin CCCD</h1>
+        <p>Upload mặt trước và tùy chọn mặt sau. Hệ thống ưu tiên QR, sau đó dùng OCR để bổ sung dữ liệu còn thiếu.</p>
+      </div>
+
+      <form id="cccd-form">
+        <label class="file-field">
+          <span>Mặt trước CCCD</span>
+          <input id="front" name="front" type="file" accept="image/png,image/jpeg" required />
+        </label>
+
+        <label class="file-field">
+          <span>Mặt sau CCCD</span>
+          <input id="back" name="back" type="file" accept="image/png,image/jpeg" />
+        </label>
+
+        <button id="submit-button" type="submit">Đọc thông tin</button>
+      </form>
+
+      <div id="message" class="message" role="status"></div>
+    </section>
+
+    <section class="preview-grid">
+      <figure>
+        <img id="front-preview" alt="Preview mặt trước" />
+        <figcaption>Mặt trước</figcaption>
+      </figure>
+      <figure>
+        <img id="back-preview" alt="Preview mặt sau" />
+        <figcaption>Mặt sau</figcaption>
+      </figure>
+    </section>
+
+    <section id="result-section" class="result-section hidden">
+      <div class="result-header">
+        <h2>Kết quả</h2>
+        <button id="copy-json" type="button">Copy JSON</button>
+      </div>
+      <div id="warnings" class="warnings"></div>
+      <div id="fields" class="fields"></div>
+      <h3>JSON</h3>
+      <pre id="json-output"></pre>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+
+</html>
